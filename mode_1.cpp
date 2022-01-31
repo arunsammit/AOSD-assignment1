@@ -89,7 +89,7 @@ void preempt(vector<Process> &readyQueue, CPU &CPUState, int time, int &jobsLost
         readyQueue.push_back(task);
 }
 
-void schedule(vector<Process> readyQueue, int time, int task, CPU &CPUState) {
+void schedule(vector<Process> &readyQueue, int time, int task, CPU &CPUState) {
     CPUState.idle = false;
     CPUState.startTime = time;
     CPUState.priority = agingPriority(readyQueue[task], time);
@@ -98,7 +98,7 @@ void schedule(vector<Process> readyQueue, int time, int task, CPU &CPUState) {
 }
 
 int main() {
-    int jobsCreated = 0, jobsServed = 0, jobsLost = 0;
+    int jobsCreated = 0, jobsServed = 0, jobsLost = 0, contextSwitch = 0;
     const int MAXTIME = 300;
     vector<Process> readyQueue;
     CPU CPUState;
@@ -110,7 +110,7 @@ int main() {
             jobsServed += 1;
         }
         if(!createJob(time, task)) {
-            if(readyQueue.size()==QUEUESIZE)
+            if(readyQueue.size()>=QUEUESIZE)
                 jobsLost += 1;
             else
                 readyQueue.push_back(task);
@@ -121,11 +121,13 @@ int main() {
         //     cout << p;
         // cout << "Debug" << endl;
         if(newTask!=-1) {
-            if(!CPUState.idle)
+            if(!CPUState.idle) {
+                contextSwitch += 1;
                 preempt(readyQueue, CPUState, time, jobsLost);
+            }
             schedule(readyQueue, time, newTask, CPUState);
         }
-        cout << readyQueue.size() << endl;
+        // cout << readyQueue.size() << endl;
         // cout << CPUState;
         // for(auto &p: readyQueue)
         //     cout << p;
@@ -135,5 +137,7 @@ int main() {
     cout << "Number of jobs served: " << jobsServed << endl;
     cout << "Number of jobs Lost: " << jobsLost << endl;
     cout << "Number of jobs in Ready Queue: " << readyQueue.size() << endl;
+    cout << "Job executing in CPU: " << !CPUState.idle << endl;
+    cout << "Number of Preemption: " << contextSwitch << endl;
     return 0;
 }
