@@ -4,8 +4,8 @@
 #include "Utils.h"
 using namespace std;
 
-#define QUEUESIZE 20
-#define NUMPRIORITY 3
+int queue_size = 20;
+int num_queues = 3;
 
 int getNextTask(queue<Process> priorityQueue[], Process &task) {
     int zero = 0, one = 0, two = 0;
@@ -38,10 +38,18 @@ void schedule(int time, Process &task, CPU &CPUState) {
     CPUState.remainTime = task.burstTime;
 }
 
-int main() {
+int main(int argc, char const *argv[]) {
+    if (argc !=2){
+        cout << "Usage: ./mode_2 <queue_size>" << endl;
+        cout << "Since the command line arguments were not provided, the default value will be used." << endl;
+        cout << "The default queue size is 20." << endl;
+    } else {
+        queue_size = atoi(argv[1]);
+    }
     int jobsCreated = 0, jobsServed = 0, jobsLost = 0, contextSwitch = 0;
     const int MAXTIME = 300;
-    queue<Process> priorityQueue[NUMPRIORITY];
+    queue<Process> priorityQueue[num_queues];
+    queue<Process> readyQueue;
     CPU CPUState;
     Process task;
     CPUState.idle = true;
@@ -50,25 +58,34 @@ int main() {
             CPUState.idle = true;
             jobsServed += 1;
         }
-        if(!createJob(time, task)) {
-            jobsCreated += 1;
-            if(task.priority==0)
-                priorityQueue[0].push(task);
-            else if(task.priority==1)
-                priorityQueue[1].push(task);
-            else
-                priorityQueue[2].push(task);
+        int numJobs = rand()%4;
+        while(numJobs--) {
+            if(!createJob(time, task)) {
+                jobsCreated += 1;
+                if(task.priority==0)
+                    priorityQueue[0].push(task);
+                else if(task.priority==1)
+                    priorityQueue[1].push(task);
+                else
+                    priorityQueue[2].push(task);
+            }
         }
-        if(!CPUState.idle)
-            continue;
         if(!getNextTask(priorityQueue, task))
             continue;
-        schedule(time, task, CPUState);
+        if(readyQueue.size()>=queue_size) {
+            jobsLost += 1;
+            continue;
+        }
+        readyQueue.push(task);
+        if(CPUState.idle and readyQueue.size()) {
+            schedule(time, readyQueue.front(), CPUState);
+            readyQueue.pop();
+        }
     }
     cout << "Number of jobs created: " << jobsCreated << endl;
     cout << "Number of jobs served: " << jobsServed << endl;
     cout << "Number of jobs Lost: " << jobsLost << endl;
-    cout << "Number of jobs in Ready Queue: " << priorityQueue[0].size()+priorityQueue[1].size()+priorityQueue[2].size() << endl;
+    cout << "Number of jobs in Ready Queue: " << readyQueue.size() << endl;
     cout << "Job executing in CPU: " << !CPUState.idle << endl;
     cout << "Number of Preemption: " << contextSwitch << endl;
     return 0;

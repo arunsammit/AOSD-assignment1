@@ -2,13 +2,13 @@
 #include <vector>
 #include <iostream>
 
-#define QUEUESIZE 20
-#define AGING 10
+int queue_size = 20;
+int ageing = 10;
 
 using namespace std;
 
 int agingPriority(Process &task, int time) {
-    return task.priority+(time-task.arrivalTime)/AGING;
+    return task.priority+(time-task.arrivalTime)/ageing;
 }
 
 int highPriorityTask(vector<Process> &readyQueue, CPU &CPUState, int time) {
@@ -28,7 +28,7 @@ void preempt(vector<Process> &readyQueue, CPU &CPUState, int time, int &jobsLost
     task.arrivalTime = time;
     task.burstTime = CPUState.remainTime-(time-CPUState.startTime);
     task.priority = CPUState.priority;
-    if(readyQueue.size()>=QUEUESIZE+1)
+    if(readyQueue.size()>=queue_size+1)
         jobsLost += 1;
     else
         readyQueue.push_back(task);
@@ -41,7 +41,15 @@ void schedule(vector<Process> &readyQueue, int time, int task, CPU &CPUState) {
     CPUState.remainTime = readyQueue[task].burstTime;
     readyQueue.erase(readyQueue.begin()+task);
 }
-int main() {
+int main(int argc, char const *argv[]) {
+    if (argc !=3){
+        cout << "Usage: ./mode_2 <queue_size> <ageing_time>" << endl;
+        cout << "Since the command line arguments were not provided, the default values will be used." << endl;
+        cout << "The default queue size is 20 and the default ageing time is 10." << endl;
+    } else {
+        queue_size = atoi(argv[1]);
+        ageing = atoi(argv[2]);
+    }
     int jobsCreated = 0, jobsServed = 0, jobsLost = 0, contextSwitch = 0;
     const int MAXTIME = 300;
     vector<Process> readyQueue;
@@ -54,7 +62,7 @@ int main() {
             jobsServed += 1;
         }
         if(!createJob(time, task)) {
-            if(readyQueue.size()>=QUEUESIZE)
+            if(readyQueue.size()>=queue_size)
                 jobsLost += 1;
             else
                 readyQueue.push_back(task);

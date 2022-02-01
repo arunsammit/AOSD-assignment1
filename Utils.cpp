@@ -31,8 +31,7 @@ bool jobFinish(CPU &CPUState, int time) {
 
 int createJob(int time, Process &task) {
     int random = rand()%4;
-    // cout << "Jobs " << random << endl; 
-    if(!random) {     // Jobs are being created with 1 in every 4 time step
+    if(random == 0){  // Jobs are being created with a probability of 1/4
         task = Process(time);
         // cout << "Start " << task << endl;
         return !FAIL;

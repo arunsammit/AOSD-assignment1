@@ -3,8 +3,8 @@
 #include <ostream>
 #include <vector>
 
-#define FAIL 1
-#define FINISH 1
+const int FAIL = 1;
+const int FINISH = 1;
 
 class Process
 {
