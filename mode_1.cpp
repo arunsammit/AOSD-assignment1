@@ -1,66 +1,11 @@
-#include <bits/stdc++.h>
-using namespace std;
+#include "Utils.h"
+#include <vector>
+#include <iostream>
 
-#define FAIL 1
-#define FINISH 1
-#define AGING 10
 #define QUEUESIZE 20
+#define AGING 10
 
-class Process {
-public:
-    int arrivalTime;
-    int burstTime;
-    int priority;
-
-    Process(int time) : arrivalTime(time), burstTime(rand()%10+1), priority(rand()%3) {}
-    Process() {}
-
-    bool operator < (const Process &p) const {
-        if(priority!=p.priority)
-            return priority<p.priority;
-        if(burstTime!=p.burstTime)
-            return burstTime>p.burstTime;
-        return arrivalTime>p.arrivalTime;
-    }
-};
-
-class CPU {
-public:
-    bool idle;
-    int startTime;
-    int remainTime;
-    int priority;
-
-    CPU() {}
-    CPU(int sTime, int rTime, int p) : idle(1), startTime(sTime), remainTime(rTime), priority(p) {}
-};
-
-ostream& operator << (ostream &cout, CPU &CPUState) {
-    cout << "CPU: " << CPUState.idle << ' ' << CPUState.startTime << ' ' << CPUState.remainTime << ' ' << CPUState.priority << endl;
-    return cout;
-}
-
-ostream& operator << (ostream &cout, Process &task) {
-    cout << "Process: " << task.arrivalTime << ' ' << task.burstTime << ' ' << task.priority << endl;
-    return cout;
-}
-
-bool jobFinish(CPU &CPUState, int time) {
-    if(CPUState.startTime+CPUState.remainTime<=time)
-        return FINISH;
-    return !FINISH;
-}
-
-int createJob(int time, Process &task) {
-    int random = rand()%4;
-    // cout << "Jobs " << random << endl; 
-    if(!random) {     // Jobs are being created with 1 in every 4 time step
-        task = Process(time);
-        // cout << "Start " << task << endl;
-        return !FAIL;
-    }
-    return FAIL;
-}
+using namespace std;
 
 int agingPriority(Process &task, int time) {
     return task.priority+(time-task.arrivalTime)/AGING;
@@ -96,7 +41,6 @@ void schedule(vector<Process> &readyQueue, int time, int task, CPU &CPUState) {
     CPUState.remainTime = readyQueue[task].burstTime;
     readyQueue.erase(readyQueue.begin()+task);
 }
-
 int main() {
     int jobsCreated = 0, jobsServed = 0, jobsLost = 0, contextSwitch = 0;
     const int MAXTIME = 300;
